@@ -127,3 +127,27 @@ func (m *MsgUpdateClient) GetHeader() []byte {
 func (m *MsgUpdateClient) SetHeader(header *codectypes.Any) {
 	m.Header = header
 }
+
+// MisbehaviourMsg is an interface that defines methods for getting and setting the misbehaviour in a message.
+type MisbehaviourMsg interface {
+	// GetMisbehaviour returns the byte slice representation of the misbehaviour included in the message.
+	// Returns nil if the misbehaviour is not set.
+	GetMisbehaviour() []byte
+
+	// SetMisbehaviour sets the misbehaviour in the message to the given value.
+	SetMisbehaviour(misbehaviour *codectypes.Any)
+}
+
+// GetMisbehaviour returns the byte slice representation of the misbehaviour included in the submit misbehaviour message.
+// Returns nil if the misbehaviour is not set.
+func (m *MsgSubmitMisbehaviour) GetMisbehaviour() []byte {
+	if m.Misbehaviour == nil {
+		return nil
+	}
+	return m.Misbehaviour.Value
+}
+
+// SetMisbehaviour sets the misbehaviour in the submit misbehaviour message to the given value.
+func (m *MsgSubmitMisbehaviour) SetMisbehaviour(misbehaviour *codectypes.Any) {
+	m.Misbehaviour = misbehaviour
+}
