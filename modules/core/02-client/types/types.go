@@ -103,3 +103,27 @@ func (m *MsgUpgradeClient) GetConsensusState() []byte {
 func (m *MsgUpgradeClient) SetConsensusState(state *codectypes.Any) {
 	m.ConsensusState = state
 }
+
+// HeaderMsg is an interface that defines methods for getting and setting the header of a message.
+type HeaderMsg interface {
+	// GetHeader returns the byte slice representation of the header included in the message.
+	// Returns nil if the header is not set.
+	GetHeader() []byte
+
+	// SetHeader sets the header in the message to the given value.
+	SetHeader(header *codectypes.Any)
+}
+
+// GetHeader returns the byte slice representation of the header included in the update client message.
+// Returns nil if the header is not set.
+func (m *MsgUpdateClient) GetHeader() []byte {
+	if m.Header == nil {
+		return nil
+	}
+	return m.Header.Value
+}
+
+// SetHeader sets the header in the update client message to the given value.
+func (m *MsgUpdateClient) SetHeader(header *codectypes.Any) {
+	m.Header = header
+}
