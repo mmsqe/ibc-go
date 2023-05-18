@@ -78,28 +78,28 @@ func (m *MsgUpgradeClient) SetConsensusState(state *codectypes.Any) {
 	m.ConsensusState = state
 }
 
-// ClientMessageMsg is an interface that defines methods for getting and setting the clientMessage of a message.
-type ClientMessageMsg interface {
-	// GetClientMessage returns the byte slice representation of the clientMessage included in the message.
-	// Returns nil if the clientMessage is not set.
-	GetClientMessage() []byte
+// HeaderMsg is an interface that defines methods for getting and setting the header of a message.
+type HeaderMsg interface {
+	// GetHeader returns the byte slice representation of the header included in the message.
+	// Returns nil if the header is not set.
+	GetHeader() []byte
 
-	// SetClientMessage sets the clientMessage in the message to the given value.
-	SetClientMessage(clientMessage *codectypes.Any)
+	// SetHeader sets the header in the message to the given value.
+	SetHeader(header *codectypes.Any)
 }
 
-// GetClientMessage returns the byte slice representation of the clientMessage included in the update client message.
-// Returns nil if the clientMessage is not set.
-func (m *MsgUpdateClient) GetClientMessage() []byte {
-	if m.ClientMessage == nil {
+// GetHeader returns the byte slice representation of the header included in the update client message.
+// Returns nil if the header is not set.
+func (m *MsgUpdateClient) GetHeader() []byte {
+	if m.Header == nil {
 		return nil
 	}
-	return m.ClientMessage.Value
+	return m.Header.Value
 }
 
-// SetClientMessage sets the clientMessage in the update client message to the given value.
-func (m *MsgUpdateClient) SetClientMessage(clientMessage *codectypes.Any) {
-	m.ClientMessage = clientMessage
+// SetHeader sets the header in the update client message to the given value.
+func (m *MsgUpdateClient) SetHeader(header *codectypes.Any) {
+	m.Header = header
 }
 
 // MisbehaviourMsg is an interface that defines methods for getting and setting the misbehaviour in a message.
