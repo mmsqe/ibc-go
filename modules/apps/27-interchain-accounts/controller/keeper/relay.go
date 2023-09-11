@@ -1,10 +1,13 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -21,8 +24,24 @@ import (
 // Prior to to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) SendTx(ctx sdk.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
-	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
+// SendTx defines a rpc handler for MsgSendTx
+func (k Keeper) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.MsgSendTxResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	portID, err := icatypes.NewControllerPortID(msg.Owner)
+	if err != nil {
+		return nil, err
+	}
+
+	// the absolute timeout value is calculated using the controller chain block time + the relative timeout value
+	// this assumes time synchrony to a certain degree between the controller and counterparty host chain
+	absoluteTimeout := uint64(ctx.BlockTime().UnixNano()) + msg.RelativeTimeout
+	seq, err := k.sendTx(ctx, msg.ConnectionId, portID, msg.PacketData, absoluteTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSendTxResponse{Sequence: seq}, nil
 }
 
 func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
