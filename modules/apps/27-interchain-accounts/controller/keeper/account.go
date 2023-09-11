@@ -1,11 +1,14 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/cosmos/ibc-go/v7/internal/logging"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -27,24 +30,33 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
-	portID, err := icatypes.NewControllerPortID(owner)
+// RegisterInterchainAccount defines a rpc handler for MsgRegisterInterchainAccount
+func (k Keeper) RegisterInterchainAccount(goCtx context.Context, msg *types.MsgRegisterInterchainAccount) (*types.MsgRegisterInterchainAccountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	portID, err := icatypes.NewControllerPortID(msg.Owner)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if k.IsMiddlewareDisabled(ctx, portID, connectionID) && !k.IsActiveChannelClosed(ctx, connectionID, portID) {
-		return sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel is already active or a handshake is in flight")
+	if k.IsMiddlewareEnabled(ctx, portID, msg.ConnectionId) && !k.IsActiveChannelClosed(ctx, msg.ConnectionId, portID) {
+		return nil, sdkerrors.Wrap(icatypes.ErrInvalidChannelFlow, "channel is already active or a handshake is in flight")
 	}
 
-	k.SetMiddlewareEnabled(ctx, portID, connectionID)
+	k.SetMiddlewareDisabled(ctx, portID, msg.ConnectionId)
 
-	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version)
+	channelID, err := k.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version)
 	if err != nil {
-		return err
+		k.Logger(ctx).Error("error registering interchain account", "error", err.Error())
+		return nil, err
 	}
 
-	return nil
+	k.Logger(ctx).Info("successfully registered interchain account", "channel-id", channelID)
+
+	return &types.MsgRegisterInterchainAccountResponse{
+		ChannelId: channelID,
+		PortId:    portID,
+	}, nil
 }
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
