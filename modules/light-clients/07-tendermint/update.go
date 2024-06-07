@@ -138,11 +138,13 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 	// check for duplicate update
 	if consensusState, _ := GetConsensusState(clientStore, cdc, header.GetHeight()); consensusState != nil {
+		fmt.Println("mm-UpdateState-1:", header.GetHeight())
 		// perform no-op
 		return []exported.Height{header.GetHeight()}
 	}
 
 	height := header.GetHeight().(clienttypes.Height)
+	fmt.Println("mm-UpdateState-2:", height, cs.LatestHeight)
 	if height.GT(cs.LatestHeight) {
 		cs.LatestHeight = height
 	}
@@ -157,6 +159,14 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	setClientState(clientStore, cdc, &cs)
 	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
+
+	bz := clientStore.Get(host.ClientStateKey())
+	if len(bz) > 0 {
+		clientState := clienttypes.MustUnmarshalClientState(cdc, bz)
+		fmt.Println("mm-UpdateState-af:", clientState.GetLatestHeight())
+	} else {
+		fmt.Println("mm-UpdateState-af: empty")
+	}
 
 	return []exported.Height{height}
 }

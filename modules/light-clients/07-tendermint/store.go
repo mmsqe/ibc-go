@@ -3,6 +3,7 @@ package tendermint
 import (
 	"bytes"
 	"encoding/binary"
+	fmt "fmt"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -47,6 +48,7 @@ func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState 
 	key := host.ClientStateKey()
 	val := clienttypes.MustMarshalClientState(cdc, clientState)
 	clientStore.Set(key, val)
+	fmt.Println("mm-setClientState:", clientState.LatestHeight)
 }
 
 // setConsensusState stores the consensus state at the given height.

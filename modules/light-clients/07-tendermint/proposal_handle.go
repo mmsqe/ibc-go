@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	fmt "fmt"
 	"reflect"
 	"time"
 
@@ -66,6 +67,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	setConsensusMetadataWithValues(subjectClientStore, height, processedHeight, processedTime)
 
+	fmt.Println("mm-CheckSubstituteAndUpdateState:", substituteClientState.LatestHeight, cs.LatestHeight)
 	cs.LatestHeight = substituteClientState.LatestHeight
 	cs.ChainId = substituteClientState.ChainId
 

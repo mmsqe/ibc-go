@@ -84,6 +84,7 @@ func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clien
 	}
 
 	clientState := k.MustUnmarshalClientState(bz)
+	fmt.Println("mm-Keeper-GetClientState:", clientState.GetLatestHeight())
 	return clientState, true
 }
 
@@ -91,6 +92,7 @@ func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.Clien
 func (k Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(host.ClientStateKey(), k.MustMarshalClientState(clientState))
+	fmt.Println("mm-Keeper-SetClientState:", clientState.GetLatestHeight())
 }
 
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
