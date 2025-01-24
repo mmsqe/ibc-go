@@ -12,6 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // emitCreateClientEvent emits a create client event
@@ -31,7 +32,11 @@ func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string, initial
 }
 
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+	chainId := ""
+	if h, ok := clientMsg.(*ibctm.Header); ok {
+		chainId = h.Header.ChainID
+	}
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -51,6 +56,7 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			// Please use AttributeKeyConsensusHeights instead.
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute("chain_id", chainId),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
