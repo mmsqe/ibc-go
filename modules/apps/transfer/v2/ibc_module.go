@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/telemetry"
@@ -52,13 +53,29 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	sender, err := im.keeper.GetAddressCodec().StringToBytes(data.Sender)
-	if err != nil {
-		return err
+	var (
+		sender string
+		addr   []byte
+		match  bool
+	)
+	codec := im.keeper.GetAddressCodec()
+	if codec == nil {
+		addr, err := sdk.AccAddressFromBech32(data.Sender)
+		if err != nil {
+			return err
+		}
+		sender = addr.String()
+		match = signer.Equals(addr)
+	} else {
+		addr, err = codec.StringToBytes(data.Sender)
+		if err != nil {
+			return err
+		}
+		sender = common.Bytes2Hex(addr)
+		match = bytes.Equal(addr, signer)
 	}
-
-	if !bytes.Equal(sender, signer) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
+	if !match {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer.String())
 	}
 
 	// Enforce that the base denom does not contain any slashes
@@ -76,7 +93,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	events.EmitTransferEvent(ctx, data.Sender, data.Receiver, data.Token, data.Memo)
+	events.EmitTransferEvent(ctx, sender, data.Receiver, data.Token, data.Memo)
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -282,10 +283,21 @@ func (suite *KeeperTestSuite) TestMsgTransferIBCV2() {
 			// Verify events
 			var expEvents []abci.Event
 			events := ctx.EventManager().Events().ToABCIEvents()
+			var sender string
+			codec := suite.chainA.GetSimApp().TransferKeeper.GetAddressCodec()
+			if codec == nil {
+				addr, err := sdk.AccAddressFromBech32(msg.Sender)
+				suite.Require().NoError(err)
+				sender = addr.String()
+			} else {
+				addr, err := codec.StringToBytes(msg.Sender)
+				suite.Require().NoError(err)
+				sender = common.Bytes2Hex(addr)
+			}
 
 			expEvents = sdk.Events{
 				sdk.NewEvent(types.EventTypeTransfer,
-					sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+					sdk.NewAttribute(types.AttributeKeySender, sender),
 					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 					sdk.NewAttribute(types.AttributeKeyDenom, token.Denom.Path()),
 					sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
