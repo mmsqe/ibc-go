@@ -49,13 +49,14 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestNewKeeper() {
+	ac := suite.chainA.GetSimApp().AccountKeeper.AddressCodec()
 	testCases := []struct {
 		name          string
 		instantiateFn func()
 		panicMsg      string
 	}{
 		{"success", func() {
-			keeper.NewKeeper(
+			k := keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
@@ -66,9 +67,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
+			k.SetAddressCodec(ac)
 		}, ""},
 		{"failure: transfer module account does not exist", func() {
-			keeper.NewKeeper(
+			k := keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
@@ -79,9 +81,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
+			k.SetAddressCodec(ac)
 		}, "the IBC transfer module account has not been set"},
 		{"failure: empty authority", func() {
-			keeper.NewKeeper(
+			k := keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
@@ -92,6 +95,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().BankKeeper,
 				"", // authority
 			)
+			k.SetAddressCodec(ac)
 		}, "authority must be non-empty"},
 	}
 

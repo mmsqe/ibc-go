@@ -375,6 +375,7 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.TransferKeeper.SetAddressCodec(app.AccountKeeper.AddressCodec())
 
 	// Mock Module Stack
 

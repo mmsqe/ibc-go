@@ -34,6 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Features
+* [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer, PFM, and rate limiting.
+
 ## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
 
 ### Features
